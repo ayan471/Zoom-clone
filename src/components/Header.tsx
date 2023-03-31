@@ -12,7 +12,13 @@ import { useDispatch } from "react-redux";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAppSelector } from "../app/hooks";
 import { changeTheme } from "../app/slices/AuthSlice";
-import { getCreateMeetingBreadCrumbs } from "../utils/breadCrumbs";
+import {
+  getCreateMeetingBreadCrumbs,
+  getMeetingsBreadCrumbs,
+  getMyMeetingsBreadCrumbs,
+  getOneonOneMeetingBreadCrumbs,
+  getVideoConferenceBreadCrumbs,
+} from "../utils/breadCrumbs";
 import { firebaseAuth } from "../utils/FireBaseConfig";
 
 const Header = () => {
@@ -31,6 +37,14 @@ const Header = () => {
     const { pathname } = location;
     if (pathname === "/create")
       setBreadCrumbs(getCreateMeetingBreadCrumbs(navigate));
+    else if (pathname === "/create1on1")
+      setBreadCrumbs(getOneonOneMeetingBreadCrumbs(navigate));
+    else if (pathname === "/videoconference")
+      setBreadCrumbs(getVideoConferenceBreadCrumbs(navigate));
+    else if (pathname === "/mymeetings")
+      setBreadCrumbs(getMyMeetingsBreadCrumbs(navigate));
+    else if (pathname === "/meetings")
+      setBreadCrumbs(getMeetingsBreadCrumbs(navigate));
   }, [location, navigate]);
 
   const invertTheme = () => {

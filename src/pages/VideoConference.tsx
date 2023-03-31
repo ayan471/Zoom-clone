@@ -1,8 +1,14 @@
-import { EuiFlexGroup, EuiForm, EuiSpacer } from "@elastic/eui";
+import {
+  EuiFlexGroup,
+  EuiForm,
+  EuiFormRow,
+  EuiSpacer,
+  EuiSwitch,
+} from "@elastic/eui";
 import React, { useState } from "react";
 import MeetingNameField from "../components/FormComponents/MeetingNameField";
 import MeetingUsersField from "../components/FormComponents/MeetingUsersField";
-
+import MeetingMaximumUserField from "../components/FormComponents/MeetingMaximumUserField";
 import Header from "../components/Header";
 import useAuth from "../hooks/useAuth";
 import useFetchUsers from "../hooks/useFetchUsers";
@@ -17,7 +23,7 @@ import { useAppSelector } from "../app/hooks";
 import { useNavigate } from "react-router-dom";
 import useToast from "../hooks/useToast";
 
-function OneOnOneMeeting() {
+function VideoConference() {
   useAuth();
   const [users] = useFetchUsers();
   const navigate = useNavigate();
@@ -27,6 +33,8 @@ function OneOnOneMeeting() {
   const [meetingName, setMeetingName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<Array<UserType>>([]);
   const [startDate, setStartDate] = useState(moment());
+  const [size, setSize] = useState(1);
+  const [anyoneCanJoin, setAnyoneCanJoin] = useState(false);
   const [showErrors, setShowErrors] = useState<{
     meetingName: FieldErrorType;
     meetingUser: FieldErrorType;
@@ -74,14 +82,18 @@ function OneOnOneMeeting() {
         createdBy: uid,
         meetingId,
         meetingName,
-        meetingType: "1-on-1",
-        invitedUsers: [selectedUsers[0].uid],
+        meetingType: anyoneCanJoin ? "anyone-can-join" : "video-conference",
+        invitedUsers: anyoneCanJoin
+          ? []
+          : selectedUsers.map((user: UserType) => user.uid),
         meetingDate: startDate.format("L"),
-        maxUsers: 1,
+        maxUsers: anyoneCanJoin ? 100 : size,
         status: true,
       });
       createToast({
-        title: "One on One Meeting Created Successfully.",
+        title: anyoneCanJoin
+          ? "Anyone Can join meeting created successfully"
+          : "Video Conference created successfully",
         type: "success",
       });
       navigate("/");
@@ -98,6 +110,15 @@ function OneOnOneMeeting() {
       <Header />
       <EuiFlexGroup justifyContent="center" alignItems="center">
         <EuiForm>
+          <EuiFormRow display="columnCompressedSwitch" label="Anyone can Join">
+            <EuiSwitch
+              showLabel={false}
+              label="Anyone can Join"
+              checked={anyoneCanJoin}
+              onChange={(e) => setAnyoneCanJoin(e.target.checked)}
+              compressed
+            />
+          </EuiFormRow>
           <MeetingNameField
             label="Meeting Name"
             placeholder="Meeting Name"
@@ -106,17 +127,21 @@ function OneOnOneMeeting() {
             isInvalid={showErrors.meetingName.show}
             error={showErrors.meetingName.message}
           />
-          <MeetingUsersField
-            label="Invite User"
-            options={users}
-            onChange={onUserChange}
-            selectedOptions={selectedUsers}
-            singleSelection={{ asPlainText: true }}
-            isClearable={false}
-            placeholder="Select a user"
-            isInvalid={showErrors.meetingUser.show}
-            error={showErrors.meetingUser.message}
-          />
+          {anyoneCanJoin ? (
+            <MeetingMaximumUserField value={size} setValue={setSize} />
+          ) : (
+            <MeetingUsersField
+              label="Invite User"
+              options={users}
+              onChange={onUserChange}
+              selectedOptions={selectedUsers}
+              singleSelection={false}
+              isClearable={false}
+              placeholder="Select a user"
+              isInvalid={showErrors.meetingUser.show}
+              error={showErrors.meetingUser.message}
+            />
+          )}
           <MeetingDateField selected={startDate} setStartDate={setStartDate} />
           <EuiSpacer />
           <CreateMeetingButtons createMeeting={createMeeting} />
@@ -126,4 +151,4 @@ function OneOnOneMeeting() {
   );
 }
 
-export default OneOnOneMeeting;
+export default VideoConference;
